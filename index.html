@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>KTSadar — Arus Kas</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0a0000;
+  --bg2:      #110000;
+  --bg3:      #1a0000;
+  --card:     #150000;
+  --card2:    #1e0505;
+  --red:      #cc0000;
+  --red2:     #e81010;
+  --red-dim:  #7a0000;
+  --red-glow: rgba(200,0,0,0.18);
+  --green:    #1a7a3a;
+  --green2:   #22a04a;
+  --text:     #f0e0e0;
+  --muted:    #8a5555;
+  --border:   rgba(200,0,0,0.22);
+  --border2:  rgba(200,0,0,0.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;min-height:100vh;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:50;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.08em;color:var(--text);animation:glow 3s ease-in-out infinite;}
+@keyframes glow{0%,100%{text-shadow:0 0 16px rgba(200,0,0,.5);}50%{text-shadow:0 0 30px rgba(200,0,0,.9),0 0 60px rgba(200,0,0,.3);}}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.badge-admin{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--red);text-transform:uppercase;}
+.btn-sm{background:transparent;border:1px solid var(--red-dim);color:var(--text);padding:5px 12px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s;}
+.btn-sm:hover{border-color:var(--red);background:rgba(200,0,0,.12);}
+
+/* PAGES */
+.page{display:none;}.page.active{display:block;}
+.content-scroll{padding-bottom:80px;}
+
+/* SECTION */
+.sec-header{display:flex;align-items:center;gap:10px;padding:20px 16px 12px;}
+.sec-title{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--red);text-transform:uppercase;}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--red-dim),transparent);}
+
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-top:2px solid var(--red-dim);border-radius:3px;padding:16px 14px 12px;position:relative;overflow:hidden;animation:fadeUp .3s ease both;}
+.stat-card::after{content:'';position:absolute;bottom:0;right:0;width:60px;height:60px;background:radial-gradient(circle at 100% 100%,rgba(200,0,0,.08),transparent 70%);}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.03em;line-height:1;color:var(--text);}
+.stat-val.green{color:var(--green2);}.stat-val.rv{color:var(--red2);}
+.stat-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-top:5px;}
+
+/* FILTER */
+.filter-bar{display:flex;gap:0;margin:0 16px 12px;border:1px solid var(--border);border-radius:3px;overflow:hidden;}
+.filter-tab{flex:1;background:var(--card);border:none;color:var(--muted);padding:9px 6px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-right:1px solid var(--border2);transition:all .15s;}
+.filter-tab:last-child{border-right:none;}.filter-tab.active{background:var(--red);color:var(--text);}
+.filter-tab:hover:not(.active){background:var(--card2);color:var(--text);}
+
+/* TRX CARDS */
+.trx-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.trx-card{background:var(--card);border:1px solid var(--border2);border-left:3px solid var(--red-dim);border-radius:3px;padding:13px 14px;animation:fadeUp .25s ease both;transition:border-color .15s;}
+.trx-card:hover{border-left-color:var(--red);}.trx-card.masuk{border-left-color:var(--green);}
+.trx-card.masuk:hover{border-left-color:var(--green2);}
+.trx-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.trx-ket{font-size:14px;font-weight:600;line-height:1.3;color:var(--text);flex:1;}
+.trx-amount{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.04em;white-space:nowrap;}
+.trx-amount.masuk{color:var(--green2);}.trx-amount.keluar{color:var(--red2);}
+.trx-meta{margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.trx-date,.trx-kat{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
+.trx-saldo{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--red-dim);margin-left:auto;}
+.badge-type{padding:1px 7px;border-radius:2px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.1em;font-weight:700;text-transform:uppercase;}
+.badge-type.masuk{background:rgba(26,122,58,.2);color:var(--green2);border:1px solid rgba(26,122,58,.3);}
+.badge-type.keluar{background:rgba(200,0,0,.15);color:var(--red2);border:1px solid rgba(200,0,0,.2);}
+.trx-actions{margin-top:10px;display:flex;gap:8px;}
+.btn-del{background:transparent;border:1px solid var(--red-dim);color:var(--red-dim);padding:4px 12px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s;}
+.btn-del:hover{border-color:var(--red);color:var(--red2);background:rgba(200,0,0,.08);}
+.empty-state{text-align:center;padding:48px 20px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--bg2);border-top:1px solid var(--border);display:flex;height:62px;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;background:none;border:none;color:var(--muted);transition:color .15s;position:relative;}
+.nav-item.active{color:var(--red);}
+.nav-item.active::before{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--red);}
+.nav-icon{font-size:18px;line-height:1;}
+.nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.15em;text-transform:uppercase;}
+
+/* FORM */
+.field{margin-bottom:14px;}
+.field label{display:block;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.field input,.field select{width:100%;background:var(--card);border:1px solid var(--border);border-radius:2px;padding:10px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:500;outline:none;transition:border-color .15s;}
+.field input:focus,.field select:focus{border-color:var(--red);}
+.field select option{background:#1a0000;}
+.btn-save-full{width:100%;margin-top:8px;background:var(--red);border:none;color:var(--text);padding:14px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;border-radius:2px;font-weight:700;transition:background .15s;}
+.btn-save-full:hover{background:var(--red2);}
+
+/* GRAFIK */
+.chart-bar-wrap{display:flex;flex-direction:column;gap:4px;}
+.chart-bar-bg{flex:1;height:14px;background:var(--card);border-radius:2px;overflow:hidden;}
+.chart-bar-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(.22,1,.36,1);}
+.chart-bar-fill.masuk{background:linear-gradient(90deg,var(--green),var(--green2));}
+.chart-bar-fill.keluar{background:linear-gradient(90deg,var(--red-dim),var(--red));}
+
+/* INFO */
+.info-card{background:var(--card);border:1px solid var(--border2);border-left:3px solid var(--red-dim);border-radius:3px;padding:14px;margin-bottom:10px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border2);}
+.info-row:last-child{border-bottom:none;}
+.info-key{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;}
+.info-val{font-size:13px;font-weight:600;color:var(--text);text-align:right;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">KTSadar</div>
+  <div class="topbar-right">
+    <span class="badge-admin">SEKRETARIS</span>
+    <button class="btn-sm" onclick="exportCSV()">EKSPOR</button>
+  </div>
+</div>
+
+<!-- PAGE: DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="content-scroll">
+    <div class="sec-header">
+      <span class="sec-title">Dashboard</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="cards-grid" style="margin-bottom:14px;">
+      <div class="stat-card" style="animation-delay:.05s">
+        <div class="stat-val green" id="d-masuk">Rp 0</div>
+        <div class="stat-label">Total Pemasukan</div>
+      </div>
+      <div class="stat-card" style="animation-delay:.1s">
+        <div class="stat-val rv" id="d-keluar">Rp 0</div>
+        <div class="stat-label">Total Pengeluaran</div>
+      </div>
+      <div class="stat-card" style="animation-delay:.15s">
+        <div class="stat-val" id="d-saldo">Rp 0</div>
+        <div class="stat-label">Saldo Kas</div>
+      </div>
+      <div class="stat-card" style="animation-delay:.2s">
+        <div class="stat-val" id="d-jml">0</div>
+        <div class="stat-label">Total Transaksi</div>
+      </div>
+    </div>
+    <div class="sec-header">
+      <span class="sec-title">Transaksi Terbaru</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="trx-list" id="dash-recent"></div>
+  </div>
+</div>
+
+<!-- PAGE: KAS (SEMUA) -->
+<div class="page" id="page-kas">
+  <div class="content-scroll">
+    <div class="sec-header">
+      <span class="sec-title">Semua Transaksi</span>
+      <div class="sec-line"></div>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-tab active" onclick="setFilter('semua',this)">Semua</button>
+      <button class="filter-tab" onclick="setFilter('masuk',this)">Pemasukan</button>
+      <button class="filter-tab" onclick="setFilter('keluar',this)">Pengeluaran</button>
+    </div>
+    <div class="trx-list" id="trx-list"></div>
+  </div>
+</div>
+
+<!-- PAGE: TAMBAH -->
+<div class="page" id="page-tambah">
+  <div class="content-scroll">
+    <div class="sec-header">
+      <span class="sec-title">Tambah Transaksi</span>
+      <div class="sec-line"></div>
+    </div>
+    <div style="padding:0 16px;">
+      <div class="field"><label>Tanggal</label><input type="date" id="f-tanggal"></div>
+      <div class="field">
+        <label>Jenis</label>
+        <select id="f-jenis">
+          <option value="masuk">Pemasukan</option>
+          <option value="keluar">Pengeluaran</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Kategori</label>
+        <select id="f-kategori">
+          <optgroup label="── Pemasukan ──">
+            <option>Iuran Anggota</option>
+            <option>Penjualan Hasil Tani</option>
+            <option>Bantuan / Hibah</option>
+            <option>Pinjaman</option>
+            <option>Pemasukan Lain</option>
+          </optgroup>
+          <optgroup label="── Pengeluaran ──">
+            <option>Bibit & Benih</option>
+            <option>Pupuk & Pestisida</option>
+            <option>Upah Tenaga Kerja</option>
+            <option>Operasional Organisasi</option>
+            <option>Infrastruktur / Irigasi</option>
+            <option>Administrasi</option>
+            <option>Pengeluaran Lain</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field"><label>Keterangan</label><input type="text" id="f-ket" placeholder="Deskripsi singkat…"></div>
+      <div class="field"><label>Jumlah (Rp)</label><input type="number" id="f-jumlah" placeholder="0" min="0"></div>
+      <button class="btn-save-full" onclick="saveTransaction()">✓ SIMPAN TRANSAKSI</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: GRAFIK + INFO -->
+<div class="page" id="page-grafik">
+  <div class="content-scroll">
+    <div class="sec-header">
+      <span class="sec-title">Grafik Bulanan</span>
+      <div class="sec-line"></div>
+    </div>
+    <div style="padding:0 16px;">
+      <div class="chart-bar-wrap" id="chart-area"></div>
+      <div class="sec-header" style="padding:24px 0 12px;">
+        <span class="sec-title">Info Kelompok</span>
+        <div class="sec-line"></div>
+      </div>
+      <div class="info-card">
+        <div class="info-row"><span class="info-key">Nama</span><span class="info-val">Kelompok Tani Sadar</span></div>
+        <div class="info-row"><span class="info-key">SK</span><span class="info-val">141.1/18/XI/2021</span></div>
+        <div class="info-row"><span class="info-key">Lokasi</span><span class="info-val">Kp. Pasir Ipis, Gunungguruh</span></div>
+        <div class="info-row"><span class="info-key">Luas Lahan</span><span class="info-val">7,5 Ha</span></div>
+        <div class="info-row"><span class="info-key">Anggota</span><span class="info-val">20 Orang</span></div>
+        <div class="info-row"><span class="info-key">Sekretaris</span><span class="info-val">HUDRI</span></div>
+        <div class="info-row"><span class="info-key">WA</span><span class="info-val">083871666136</span></div>
+        <div class="info-row"><span class="info-key">Afiliasi</span><span class="info-val">@btnofficial165</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-dashboard" onclick="goPage('dashboard')">
+    <span class="nav-icon">▦</span><span class="nav-label">Dashboard</span>
+  </button>
+  <button class="nav-item" id="nav-kas" onclick="goPage('kas')">
+    <span class="nav-icon">≡</span><span class="nav-label">Kas</span>
+  </button>
+  <button class="nav-item" id="nav-tambah" onclick="goPage('tambah')">
+    <span class="nav-icon" style="font-size:22px;color:var(--red);">⊕</span><span class="nav-label">Tambah</span>
+  </button>
+  <button class="nav-item" id="nav-grafik" onclick="goPage('grafik')">
+    <span class="nav-icon">▲</span><span class="nav-label">Grafik</span>
+  </button>
+</nav>
+
+<script>
+let data = JSON.parse(localStorage.getItem('ktsadar_v2')||'null') || [
+  {id:1,  tanggal:'2025-01-05',jenis:'masuk', kategori:'Iuran Anggota',        ket:'Iuran anggota Januari (20 org × Rp 25.000)',       jumlah:500000},
+  {id:2,  tanggal:'2025-01-10',jenis:'keluar',kategori:'Bibit & Benih',         ket:'Pembelian benih padi Ciherang 50 kg',              jumlah:375000},
+  {id:3,  tanggal:'2025-01-18',jenis:'masuk', kategori:'Bantuan / Hibah',       ket:'Bantuan pupuk urea dari Dinas Pertanian Sukabumi', jumlah:1200000},
+  {id:4,  tanggal:'2025-02-03',jenis:'masuk', kategori:'Iuran Anggota',         ket:'Iuran anggota Februari',                          jumlah:500000},
+  {id:5,  tanggal:'2025-02-08',jenis:'keluar',kategori:'Pupuk & Pestisida',     ket:'Pupuk NPK & pestisida musim tanam I',              jumlah:860000},
+  {id:6,  tanggal:'2025-02-20',jenis:'keluar',kategori:'Upah Tenaga Kerja',     ket:'Upah gotong royong perbaikan pematang',            jumlah:400000},
+  {id:7,  tanggal:'2025-03-05',jenis:'masuk', kategori:'Iuran Anggota',         ket:'Iuran anggota Maret',                             jumlah:500000},
+  {id:8,  tanggal:'2025-03-15',jenis:'keluar',kategori:'Administrasi',          ket:'Fotokopi & administrasi proposal irigasi',        jumlah:120000},
+  {id:9,  tanggal:'2025-04-02',jenis:'masuk', kategori:'Penjualan Hasil Tani',  ket:'Penjualan gabah kering MT-I',                     jumlah:3500000},
+  {id:10, tanggal:'2025-04-14',jenis:'keluar',kategori:'Operasional Organisasi',ket:'Konsumsi rapat pleno anggota',                    jumlah:210000},
+];
+let filterMode='semua';
+let nextId=Math.max(...data.map(d=>d.id),0)+1;
+
+function save(){localStorage.setItem('ktsadar_v2',JSON.stringify(data));}
+function fmtRp(n){return n>=1000000?'Rp '+(n/1000000).toFixed(n%1000000===0?0:1)+' Jt':'Rp '+n.toLocaleString('id-ID');}
+function fmtFull(n){return 'Rp '+n.toLocaleString('id-ID');}
+function fmtDate(d){const[y,m,day]=d.split('-');return `${parseInt(day)} ${['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'][parseInt(m)-1]} ${y}`;}
+
+function getStats(){
+  let masuk=0,keluar=0,saldo=0;
+  const sorted=[...data].sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
+  sorted.forEach(t=>{if(t.jenis==='masuk'){masuk+=t.jumlah;saldo+=t.jumlah;}else{keluar+=t.jumlah;saldo-=t.jumlah;}t._saldo=saldo;});
+  return{masuk,keluar,saldo,jml:data.length,sorted};
+}
+
+function goPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='dashboard')renderDash();
+  if(name==='kas')renderKas();
+  if(name==='grafik')renderGrafik();
+  if(name==='tambah'){document.getElementById('f-tanggal').value=new Date().toISOString().split('T')[0];}
+  window.scrollTo(0,0);
+}
+
+function buildCard(t,delay=0){
+  const div=document.createElement('div');
+  div.className=`trx-card ${t.jenis}`;
+  div.style.animationDelay=(delay*.05)+'s';
+  div.innerHTML=`
+    <div class="trx-top">
+      <div class="trx-ket">${t.ket}</div>
+      <div class="trx-amount ${t.jenis}">${t.jenis==='masuk'?'+':'-'} ${fmtRp(t.jumlah)}</div>
+    </div>
+    <div class="trx-meta">
+      <span class="badge-type ${t.jenis}">${t.jenis==='masuk'?'MASUK':'KELUAR'}</span>
+      <span class="trx-date">${fmtDate(t.tanggal)}</span>
+      <span class="trx-kat">· ${t.kategori}</span>
+      <span class="trx-saldo">Saldo: ${fmtFull(t._saldo)}</span>
+    </div>
+    <div class="trx-actions">
+      <button class="btn-del" onclick="hapus(${t.id})">✕ HAPUS</button>
+    </div>`;
+  return div;
+}
+
+function renderDash(){
+  const{masuk,keluar,saldo,jml,sorted}=getStats();
+  document.getElementById('d-masuk').textContent=fmtRp(masuk);
+  document.getElementById('d-keluar').textContent=fmtRp(keluar);
+  document.getElementById('d-saldo').textContent=fmtRp(saldo);
+  document.getElementById('d-jml').textContent=jml;
+  const el=document.getElementById('dash-recent');
+  el.innerHTML='';
+  const recent=[...sorted].reverse().slice(0,5);
+  recent.forEach((t,i)=>el.appendChild(buildCard(t,i)));
+  if(!recent.length)el.innerHTML='<div class="empty-state">Belum ada transaksi</div>';
+}
+
+function renderKas(){
+  const{sorted}=getStats();
+  const filtered=filterMode==='semua'?sorted:sorted.filter(t=>t.jenis===filterMode);
+  const el=document.getElementById('trx-list');
+  el.innerHTML='';
+  [...filtered].reverse().forEach((t,i)=>el.appendChild(buildCard(t,i)));
+  if(!filtered.length)el.innerHTML='<div class="empty-state">Tidak ada transaksi</div>';
+}
+
+function setFilter(mode,btn){
+  filterMode=mode;
+  document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderKas();
+}
+
+function renderGrafik(){
+  const byMonth={};
+  data.forEach(t=>{const m=t.tanggal.slice(0,7);if(!byMonth[m])byMonth[m]={masuk:0,keluar:0};byMonth[m][t.jenis]+=t.jumlah;});
+  const months=Object.keys(byMonth).sort();
+  const maxVal=Math.max(...months.map(m=>Math.max(byMonth[m].masuk,byMonth[m].keluar)),1);
+  const M=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  const el=document.getElementById('chart-area');
+  el.innerHTML='';
+  months.forEach(m=>{
+    const[,mo]=m.split('-');
+    const{masuk,keluar}=byMonth[m];
+    const row=document.createElement('div');
+    row.style.marginBottom='10px';
+    row.innerHTML=`
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.15em;margin-bottom:4px;">${M[parseInt(mo)-1]} ${m.split('-')[0]}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--green2);width:24px;">IN</span>
+        <div class="chart-bar-bg"><div class="chart-bar-fill masuk" style="width:${(masuk/maxVal*100).toFixed(1)}%"></div></div>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--green2);width:72px;text-align:right;">${fmtRp(masuk)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--red2);width:24px;">OUT</span>
+        <div class="chart-bar-bg"><div class="chart-bar-fill keluar" style="width:${(keluar/maxVal*100).toFixed(1)}%"></div></div>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--red2);width:72px;text-align:right;">${fmtRp(keluar)}</span>
+      </div>`;
+    el.appendChild(row);
+  });
+  if(!months.length)el.innerHTML='<div class="empty-state">Belum ada data</div>';
+}
+
+function saveTransaction(){
+  const tanggal=document.getElementById('f-tanggal').value;
+  const jenis=document.getElementById('f-jenis').value;
+  const kategori=document.getElementById('f-kategori').value;
+  const ket=document.getElementById('f-ket').value.trim();
+  const jumlah=parseInt(document.getElementById('f-jumlah').value);
+  if(!tanggal||!ket||!jumlah||jumlah<=0){alert('Lengkapi semua field!');return;}
+  data.push({id:nextId++,tanggal,jenis,kategori,ket,jumlah});
+  save();
+  document.getElementById('f-ket').value='';
+  document.getElementById('f-jumlah').value='';
+  goPage('dashboard');
+}
+
+function hapus(id){
+  if(!confirm('Hapus transaksi ini?'))return;
+  data=data.filter(t=>t.id!==id);
+  save();renderDash();renderKas();
+}
+
+function exportCSV(){
+  const{sorted}=getStats();
+  const rows=[['Tanggal','Keterangan','Kategori','Jenis','Jumlah','Saldo']];
+  sorted.forEach(t=>rows.push([t.tanggal,t.ket,t.kategori,t.jenis,t.jumlah,t._saldo]));
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='KTSadar_Cashflow.csv';a.click();
+}
+
+renderDash();
+</script>
+</body>
+</html>
